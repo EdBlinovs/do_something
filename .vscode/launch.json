@@ -1,0 +1,28 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'do_something'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=do_something",
+                    "--package=do_something",
+                    "--features=debug",
+                ],
+                "filter": {
+                    "name": "do_something",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PATH": "${env:USERPROFILE}/.rustup/toolchains/nightly-x86_64-pc-windows-msvc/bin;${workspaceFolder}/target/debug/deps;${env:PATH}",
+                "CARGO_MANIFEST_DIR": "${workspaceFolder}"
+            },
+        }
+    ]
+}

@@ -1,0 +1,12 @@
+[package]
+name = "do_something"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+debug = []
+
+[dependencies]
+bevy = {version = "0.12.1", features = ["dynamic_linking", "mp3", "wav"]}
+bevy-inspector-egui = "0.22.1"
+rand = "0.8.5"
