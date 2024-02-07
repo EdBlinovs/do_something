@@ -71,7 +71,7 @@ fn setup_game(mut commands: Commands, mut background_colour: ResMut<ClearColor>)
     commands.insert_resource(Difficulty {
         baby: 1.,
         sloth: 0.,
-        kitten: 1.8
+        kitten: 0.
     });
 }
 
