@@ -292,7 +292,7 @@ fn score_ticker(
 ){
     if timer.0.tick(time.delta()).just_finished() {
         score.0 += 1;
-        let num = rand::thread_rng().gen_range(0..4);
+        let num = rand::thread_rng().gen_range(0..3);
 
         if num == 0 {
             difficulty.baby += 0.1;
@@ -301,11 +301,11 @@ fn score_ticker(
         if num == 1 {
             difficulty.sloth += 0.1;
 
-            if difficulty.sloth == 0.5 {
+            if (difficulty.sloth - 0.5).abs() < 0.05 {
                 spawn_sloth_mallet(&mut commands, &asset_server);
             }
 
-            if difficulty.sloth == 1.5 {
+            if (difficulty.sloth - 1.5).abs() < 0.05 {
                 spawn_sloth(&mut commands, &asset_server);
             }
         }
@@ -313,7 +313,7 @@ fn score_ticker(
         if num == 2 {
             difficulty.kitten += 0.1;
 
-            if difficulty.kitten == 2.0 {
+            if (difficulty.kitten - 2.).abs() < 0.05 {
                 spawn_kitten_nail(&mut commands, &asset_server);
             }
         }
