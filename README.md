@@ -1,1 +1,1 @@
-runme/do_somthing.exe
+runme/do_something.exe
