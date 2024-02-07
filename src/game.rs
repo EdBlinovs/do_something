@@ -1,3 +1,5 @@
+use std::ops::{Add, Mul};
+
 use bevy::prelude::*;
 use rand::Rng;
 use crate::app_state::{self, AppState};
@@ -135,17 +137,31 @@ fn spawn_baby_fire(mut commands: Commands, asset_server: Res<AssetServer>){
 #[derive(Component)]
 pub struct Carousel(pub f32);
 
+#[derive(Component)]
+pub struct Nail;
+
 fn spin_carousel
 (
     mut query: Query<
-    (&mut Transform, &Carousel)
+    (&mut Transform, &Carousel),
+    Without<Nail>
+    >,
+    mut query2: Query<
+    (&mut Transform, &Carousel),
+    With<Nail>
     >,
     time: Res<Time>,
     difficulty: Res<Difficulty>,
 )
 {
     for (mut transform, carousel) in &mut query {
-        let angle = transform.rotation.to_euler(EulerRot::XYZ).2 + (carousel.0 * 0.3 * difficulty.kitten * time.delta_seconds());
+        let angle = transform.rotation.to_euler(EulerRot::XYZ).2 + (carousel.0 * 0.1 * difficulty.kitten * time.delta_seconds());
+        
+        transform.rotation = Quat::from_axis_angle(Vec3::Z, angle);
+    }
+
+    for (mut transform, carousel) in &mut query2 {
+        let angle = transform.rotation.to_euler(EulerRot::XYZ).2 + (carousel.0 * 0.1 * difficulty.kitten * time.delta_seconds());
         
         transform.rotation = Quat::from_axis_angle(Vec3::Z, angle);
     }
@@ -162,21 +178,22 @@ fn spawn_kitten_nail(commands: &mut Commands, asset_server: &Res<AssetServer>){
         ));
 
         parent.spawn((
-            util::image_rot(Vec2::new(-125./1.414, -125./1.414), "bridge.png".into(), &asset_server, 6.28/3.),
+            util::image_rot(Vec2::new(-91., -72.), "bridge.png".into(), &asset_server, 2.3),
         ));
 
         parent.spawn((
             util::image_rot(Vec2::new(125./1.414, -125./1.414), "nails.png".into(), &asset_server, 2. * 6.28/3.),
             BadThing,
-            CircleCollider { radius:100. }
+            Nail,
+            CircleCollider { radius:50. }
         ));
     });
 
     commands.spawn((
-        util::image(Vec2::new(316., -30.), "kitten.png".into(), &asset_server),
+        util::image(Vec2::new(316., 30.), "kitten.png".into(), &asset_server),
         GameEntity,
         GoodThing { situation: Situation::Kitten },
-        CircleCollider{ radius:100. },
+        CircleCollider{ radius:50. },
         AudioBundle {
             source: asset_server.load("kitten.wav"),
             settings: PlaybackSettings {
@@ -275,7 +292,7 @@ fn score_ticker(
 ){
     if timer.0.tick(time.delta()).just_finished() {
         score.0 += 1;
-        let num = 2;//rand::thread_rng().gen_range(0..4);
+        let num = rand::thread_rng().gen_range(0..4);
 
         if num == 0 {
             difficulty.baby += 0.1;
@@ -381,15 +398,29 @@ fn good_thing_does_not_touch_bad_thing(
     (&GoodThing, &CircleCollider, &Transform)
     >, 
     mut bad_things: Query<
-    (&BadThing, &CircleCollider, &Transform)
+    (&BadThing, &CircleCollider, &Transform, Option<&Nail>)
     >,
     mut score: ResMut<Score>,
     mut current_game_state: ResMut<NextState<app_state::AppState>>,
+    world_query: Query<(&Transform, &Carousel)>
 ){
     for (good_thing, good_circle, good_transform) in &mut good_things {
-        for (_, bad_circle, bad_transform) in &mut bad_things {
+        for (_, bad_circle, bad_transform, maybe_nail) in &mut bad_things {
             let good_pos = good_transform.translation.xy();
-            let bad_pos = bad_transform.translation.xy();
+            let mut bad_pos = bad_transform.translation.xy();
+
+            match maybe_nail {
+                Some(_) => {
+                    for (transform, _) in &world_query {
+                        let angle = transform.rotation;
+
+                        let direction_vector = angle.mul_vec3(bad_transform.translation).xy();
+
+                        bad_pos = Vec2::new(316., -180.).add(direction_vector);
+                    }
+                }
+                None => {}
+            }
 
             let distance2 = good_pos.distance_squared(bad_pos);
         
@@ -397,7 +428,8 @@ fn good_thing_does_not_touch_bad_thing(
                 current_game_state.set(AppState::GameOver);
                 score.1 = get_message(&good_thing.situation);
             }
-            
         }
     }
+
+
 }

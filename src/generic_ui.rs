@@ -82,7 +82,9 @@ pub fn button_interaction_system(
                                 }
                             },
                             Situation::Kitten => {
-                                carousel.single_mut().0 = -carousel.single_mut().0;
+                                for mut c in &mut carousel {
+                                    c.0 = -c.0;
+                                }
                             },
                             Situation::Sloth => {
                                 for (good_thing, mut transform) in &mut good_things {
